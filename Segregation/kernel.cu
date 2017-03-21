@@ -21,16 +21,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <device_launch_parameters.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
-#include <thrust/device_ptr.h>
-#include <stdio.h>
 
 namespace sim {
 constexpr int nSigmaValues{100};
 
+/// Represents the status of a cell.
+enum class cellStatusEnum : char {
+	empty,
+	color1,	// Inhabited by a color1 person.
+	color2	// Inhabited by a color2 person.
+};
+
+/// Represents a cell in space.
+struct __align__(4) cellCls {
+	cellStatusEnum status;
+	char nAffineNeighbors;
+};
+
+/// Represents variables and components to the simulation that reside in shared memory.
+struct worldCls {
+	float sigma;
+//	thrust::device_vector<cellCls> cells;
+};
+
 __global__ void kernel(float nNeighborsSigma[]) {
-	const float sigma(blockIdx.x / static_cast<float>(nSigmaValues));
+	__shared__ worldCls world;
+	world.sigma = blockIdx.x / static_cast<float>(nSigmaValues);
 	if(!threadIdx.x)
-		nNeighborsSigma[blockIdx.x] = sigma;
+		nNeighborsSigma[blockIdx.x] = sizeof(size_t);
 }
 
 void main() {
@@ -40,7 +58,7 @@ void main() {
 	const thrust::host_vector<float> nNeighborsSigmaDevice{nNeighborsSigma};
 	int sigmaI{0};
 	for(const float nNeighSigma : nNeighborsSigmaDevice)
-		std::cout << sigmaI++ << "\t" << nNeighSigma << '\n';
+		std::cout << sigmaI++ / static_cast<float>(nSigmaValues) << "\t" << nNeighSigma << '\n';
 }
 } // namespace sim
 

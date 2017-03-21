@@ -25,3 +25,11 @@ For `Windows` you might want to install [MinGW](http://www.mingw.org).
 # Developer notes
 
 This source code is managed using [git](http://git-scm.org); the repository is hosted in both [GitHub](https://github.com/facorread/segregation) and [GitLab](https://gitlab.com/facorread/segregation).
+
+If all warnings are enabled in Visual Studio (`-Wall`), it will be necessary to add the following flags to the host compiler, at Project Property Pages > Configuration Properties > CUDA C / C++ > Host > Additional Compiler Options:
+
+`/wd4001 /wd4668 /wd4514 /wd4820 /wd4515 /wd4571 /wd4365  /wd4626 /wd5027 /wd4324 /wd4623 /wd4100 /wd4191 /wd4710`
+
+The additional compiler option `-Za` for strict `C++11` compliance cannot be used because there are noncompliance issues with precompiled headers that were provided with the CUDA Toolkit 8.0.
+
+Because `-Za` cannot be used, constexpr is unavailable for class member functions.
