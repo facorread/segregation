@@ -1,6 +1,6 @@
 # Copyright and license
 
-Segregation: Exercise on the conventional Schelling segregation model
+SchellingSegregation: Exercise on the conventional Schelling segregation model
 Copyright (C) 2017 Fabio Correa <facorread@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
