@@ -32,4 +32,8 @@ If all warnings are enabled in Visual Studio (`-Wall`), it will be necessary to 
 
 The additional compiler option `-Za` for strict `C++11` compliance cannot be used because there are noncompliance issues with precompiled headers that were provided with the CUDA Toolkit 8.0.
 
-Because `-Za` cannot be used, constexpr is unavailable for class member functions.
+Because `-Za` cannot be used, `constexpr` is unavailable for class member functions.
+
+NVidia recommends 64-bit compilation using `--machine 64`. Memory in CUDA devices is addressed using 64 bits, and size_t is 64 bits long, but registers are 32 bits long; shared memory alignment and banks are 32 bits too. In order to optimize memory bandwidth, prefer arrays of `unsigned char` (8 bits), `unsigned short` (16 bits) or `unsigned int` (32 bits) indices over arrays of pointers.
+
+`cuRAND` is better and more complete than `thrust` for random numbers.

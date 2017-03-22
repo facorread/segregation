@@ -16,12 +16,14 @@ along with SchellingSegregation.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <algorithm>
 #include <cuda_runtime.h>
+#include "cudaGrid.h"
 #include <device_launch_parameters.h>
 #include <thrust/device_vector.h>
 #include <thrust/host_vector.h>
 
-namespace sim {
+namespace cudaSim {
 constexpr int nSigmaValues{100};
+typedef dimensions2Cls<dimCls<unsigned char, 50>, dimCls<unsigned char, 50>> gridT;
 
 /// Represents the status of a cell.
 enum class cellStatusEnum : char {
@@ -39,24 +41,26 @@ struct __align__(4) cellCls {
 /// Represents variables and components to the simulation that reside in shared memory.
 struct worldCls {
 	float sigma;
-//	thrust::device_vector<cellCls> cells;
+	cellCls states[gridT::size()];
 };
 
 __global__ void kernel(float nNeighborsSigma[]) {
 	__shared__ worldCls world;
 	world.sigma = blockIdx.x / static_cast<float>(nSigmaValues);
 	if(!threadIdx.x)
-		nNeighborsSigma[blockIdx.x] = sizeof(size_t);
+		nNeighborsSigma[blockIdx.x] = sizeof(world.states);
 }
+} // namespace cudaSim
 
+namespace sim {
 void main() {
 	thrust::device_vector<float> nNeighborsSigma;
-	nNeighborsSigma.resize(nSigmaValues, 0);
-	kernel<<<nSigmaValues, 32>>>(thrust::raw_pointer_cast(nNeighborsSigma.data()));
+	nNeighborsSigma.resize(cudaSim::nSigmaValues, 0);
+	cudaSim::kernel<<<cudaSim::nSigmaValues, 32>>>(thrust::raw_pointer_cast(nNeighborsSigma.data()));
 	const thrust::host_vector<float> nNeighborsSigmaDevice{nNeighborsSigma};
 	int sigmaI{0};
 	for(const float nNeighSigma : nNeighborsSigmaDevice)
-		std::cout << sigmaI++ / static_cast<float>(nSigmaValues) << "\t" << nNeighSigma << '\n';
+		std::cout << sigmaI++ / static_cast<float>(cudaSim::nSigmaValues) << "\t" << nNeighSigma << '\n';
 }
 } // namespace sim
 
